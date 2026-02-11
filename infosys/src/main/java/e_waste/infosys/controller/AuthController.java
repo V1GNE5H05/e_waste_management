@@ -1,52 +1,60 @@
 package e_waste.infosys.controller;
 
-import e_waste.infosys.model.User;
-import e_waste.infosys.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import e_waste.infosys.service.AuthService;
 
 @RestController
-@RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:3000")
+@RequestMapping("/auth")
 public class AuthController {
 
-    private final UserRepository userRepository;
+    private final AuthService authService;
 
-    public AuthController(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    @Autowired
+    public AuthController(AuthService authService) {
+
+        this.authService = authService;
     }
 
-    // REGISTER
+    // Step 1: Register (send OTP)
     @PostMapping("/register")
-    public String register(@RequestBody Map<String, String> data) {
+    public String register(@RequestBody RegisterRequest request) {
 
-        String email = data.get("email");
-        String password = data.get("password");
-
-        if (userRepository.findByEmail(email).isPresent()) {
-            return "User already exists";
-        }
-
-        User user = new User();
-        user.setEmail(email);
-        user.setPassword(password);
-
-        userRepository.save(user);
-        return "Registered successfully";
+        return authService.register(request.email(), request.password());
     }
 
-    // LOGIN
+    // Step 2: Verify OTP
+    @PostMapping("/verify-otp")
+    public String verifyOtp(@RequestBody VerifyOtpRequest request) {
+
+        return authService.verifyOtpAndSaveUser(
+                request.email(),
+                request.password(),
+                request.otp());
+    }
+
+    // Login
     @PostMapping("/login")
-    public String login(@RequestBody Map<String, String> data) {
+    public String login(@RequestBody LoginRequest request) {
 
-        String email = data.get("email");
-        String password = data.get("password");
-
-        return userRepository.findByEmail(email)
-                .map(user -> user.getPassword().equals(password)
-                        ? "Login successful"
-                        : "Wrong password")
-                .orElse("User not found");
+        return authService.login(request.email(), request.password());
     }
+
+    @PostMapping("/change-password")
+    public String changePassword(@RequestBody ChangePasswordRequest request) {
+
+        return authService.changePassword(
+                request.email(),
+                request.currentPassword(),
+                request.newPassword());
+    }
+
+    public record RegisterRequest(String email, String password) {}
+
+    public record VerifyOtpRequest(String email, String password, String otp) {}
+
+    public record LoginRequest(String email, String password) {}
+
+    public record ChangePasswordRequest(String email, String currentPassword, String newPassword) {}
 }

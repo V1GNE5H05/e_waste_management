@@ -13,5 +13,3 @@ target/
 
 # OS
 .DS_Store
-!frontend/
-!frontend/**
