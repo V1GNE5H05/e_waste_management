@@ -1,6 +1,7 @@
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/;
 const mobileRegex = /^\d{10}$/;
+const pincodeRegex = /^\d{6}$/;
 
 export const passwordRequirements =
   "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.";
@@ -20,5 +21,11 @@ export function validatePassword(password) {
 export function validateMobile(mobile) {
   if (!mobile) return ""; // optional; validate only when provided
   if (!mobileRegex.test(mobile)) return "Mobile number must be exactly 10 digits.";
+  return "";
+}
+
+export function validatePincode(pincode) {
+  if (!pincode) return ""; // optional; validate only when provided
+  if (!pincodeRegex.test(pincode)) return "Pincode must be exactly 6 digits.";
   return "";
 }

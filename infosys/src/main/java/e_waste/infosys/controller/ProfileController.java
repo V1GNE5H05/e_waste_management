@@ -32,7 +32,11 @@ public class ProfileController {
                     request.email(),
                     request.name(),
                     request.mobileNumber(),
-                    request.address());
+                    request.street(),
+                    request.landmark(),
+                    request.city(),
+                    request.state(),
+                    request.pincode());
             if (profile == null) {
                 return ResponseEntity.notFound().build();
             }
@@ -42,15 +46,21 @@ public class ProfileController {
         }
     }
 
-    public record ProfileRequest(String email, String name, String mobileNumber, String address) {}
+    public record ProfileRequest(String email, String name, String mobileNumber, 
+            String street, String landmark, String city, String state, String pincode) {}
 
-    public record ProfileResponse(String email, String name, String mobileNumber, String address) {
+    public record ProfileResponse(String email, String name, String mobileNumber, 
+            String street, String landmark, String city, String state, String pincode) {
         public static ProfileResponse from(Profile profile) {
             return new ProfileResponse(
                     profile.getUser().getEmail(),
                     profile.getName(),
                     profile.getMobileNumber(),
-                    profile.getAddress());
+                    profile.getStreet(),
+                    profile.getLandmark(),
+                    profile.getCity(),
+                    profile.getState(),
+                    profile.getPincode());
         }
     }
 }

@@ -8,8 +8,20 @@
   --clay: #e2d3bf;
   --sun: #f2a23c;
   --sea: #2f6f6b;
+  --forest: #1d4a47;
   --white: #ffffff;
   --shadow: 0 18px 50px rgba(31, 26, 20, 0.12);
+  --shadow-lg: 0 25px 60px rgba(31, 26, 20, 0.18);
+  --shadow-glow: 0 0 40px rgba(47, 111, 107, 0.15);
+  --gradient-primary: linear-gradient(135deg, #2f6f6b 0%, #1d4a47 100%);
+  --gradient-warm: linear-gradient(135deg, #f2a23c 0%, #e8923a 100%);
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+  --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 * {
@@ -27,4 +39,30 @@ body {
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--sand);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--clay);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+/* Selection */
+::selection {
+  background: var(--sea);
+  color: var(--white);
 }

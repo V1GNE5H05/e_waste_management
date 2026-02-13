@@ -17,6 +17,7 @@ public class ProfileService {
     private final UserRepository userRepository;
 
     private static final Pattern MOBILE_PATTERN = Pattern.compile("^\\d{10}$");
+    private static final Pattern PINCODE_PATTERN = Pattern.compile("^\\d{6}$");
 
     public ProfileService(ProfileRepository profileRepository, UserRepository userRepository) {
         this.profileRepository = profileRepository;
@@ -32,17 +33,24 @@ public class ProfileService {
         return existing.orElseGet(() -> profileRepository.save(new Profile(user)));
     }
 
-    public Profile upsertProfile(String email, String name, String mobileNumber, String address) {
+    public Profile upsertProfile(String email, String name, String mobileNumber, 
+            String street, String landmark, String city, String state, String pincode) {
         User user = userRepository.findByEmail(email).orElse(null);
         if (user == null) {
             return null;
         }
         String normalizedMobile = normalizeMobile(mobileNumber);
         validateMobile(normalizedMobile);
+        String normalizedPincode = normalizePincode(pincode);
+        validatePincode(normalizedPincode);
         Profile profile = profileRepository.findByUserEmail(email).orElseGet(() -> new Profile(user));
         profile.setName(name);
         profile.setMobileNumber(normalizedMobile);
-        profile.setAddress(address);
+        profile.setStreet(street);
+        profile.setLandmark(landmark);
+        profile.setCity(city);
+        profile.setState(state);
+        profile.setPincode(normalizedPincode);
         profile.setUser(user);
         return profileRepository.save(profile);
     }
@@ -56,7 +64,20 @@ public class ProfileService {
         }
     }
 
+    private void validatePincode(String pincode) {
+        if (pincode == null || pincode.isBlank()) {
+            return; // optional field
+        }
+        if (!PINCODE_PATTERN.matcher(pincode).matches()) {
+            throw new IllegalArgumentException("Pincode must be exactly 6 digits.");
+        }
+    }
+
     private String normalizeMobile(String mobileNumber) {
         return mobileNumber == null ? "" : mobileNumber.trim();
+    }
+
+    private String normalizePincode(String pincode) {
+        return pincode == null ? "" : pincode.trim();
     }
 }

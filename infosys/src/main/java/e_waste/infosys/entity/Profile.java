@@ -19,8 +19,11 @@ public class Profile {
     @Column(name = "mobile_number")
     private String mobileNumber;
 
-    @Column(columnDefinition = "TEXT")
-    private String address;
+    private String street;
+    private String landmark;
+    private String city;
+    private String state;
+    private String pincode;
 
     public Profile() {}
 
@@ -44,8 +47,24 @@ public class Profile {
         return mobileNumber;
     }
 
-    public String getAddress() {
-        return address;
+    public String getStreet() {
+        return street;
+    }
+
+    public String getLandmark() {
+        return landmark;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public String getPincode() {
+        return pincode;
     }
 
     public void setUser(User user) {
@@ -60,7 +79,23 @@ public class Profile {
         this.mobileNumber = mobileNumber;
     }
 
-    public void setAddress(String address) {
-        this.address = address;
+    public void setStreet(String street) {
+        this.street = street;
+    }
+
+    public void setLandmark(String landmark) {
+        this.landmark = landmark;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public void setPincode(String pincode) {
+        this.pincode = pincode;
     }
 }

@@ -1,7 +1,25 @@
 import { useEffect, useState } from "react";
 import devImage from "../assets/ewaste2.png";
 import { changePassword, fetchProfile, updateProfile } from "../services/api";
-import { validateMobile } from "../utils/validators";
+import { validateMobile, validatePincode } from "../utils/validators";
+import { 
+  HiHome, 
+  HiUser, 
+  HiCog, 
+  HiLogout, 
+  HiPencil, 
+  HiLockClosed, 
+  HiColorSwatch,
+  HiArrowLeft,
+  HiCheck,
+  HiX,
+  HiEye,
+  HiEyeOff,
+  HiTruck,
+  HiRefresh,
+  HiClock,
+  HiChartBar
+} from "react-icons/hi";
 import "../App.css";
 
 function HomePage({ user, onLogout }) {
@@ -12,13 +30,21 @@ function HomePage({ user, onLogout }) {
     name: "",
     email: user?.email || "",
     mobileNumber: "",
-    address: "",
+    street: "",
+    landmark: "",
+    city: "",
+    state: "",
+    pincode: "",
   });
   const [originalProfileForm, setOriginalProfileForm] = useState({
     name: "",
     email: user?.email || "",
     mobileNumber: "",
-    address: "",
+    street: "",
+    landmark: "",
+    city: "",
+    state: "",
+    pincode: "",
   });
   const [profileStatus, setProfileStatus] = useState("");
   const [profileStatusType, setProfileStatusType] = useState("");
@@ -41,7 +67,11 @@ function HomePage({ user, onLogout }) {
           name: res.data.name || "",
           email: res.data.email || user.email,
           mobileNumber: res.data.mobileNumber || "",
-          address: res.data.address || "",
+          street: res.data.street || "",
+          landmark: res.data.landmark || "",
+          city: res.data.city || "",
+          state: res.data.state || "",
+          pincode: res.data.pincode || "",
         };
         setProfileForm(profileData);
         setOriginalProfileForm(profileData);
@@ -68,11 +98,23 @@ function HomePage({ user, onLogout }) {
       return;
     }
 
+    const trimmedPincode = profileForm.pincode.trim();
+    const pincodeError = validatePincode(trimmedPincode);
+    if (pincodeError) {
+      setProfileStatus(pincodeError);
+      setProfileStatusType("error");
+      return;
+    }
+
     updateProfile({
       email: profileForm.email,
       name: profileForm.name,
       mobileNumber: trimmedMobile,
-      address: profileForm.address,
+      street: profileForm.street,
+      landmark: profileForm.landmark,
+      city: profileForm.city,
+      state: profileForm.state,
+      pincode: trimmedPincode,
     })
       .then(() => {
         setProfileStatus("Profile updated successfully");
@@ -139,12 +181,9 @@ function HomePage({ user, onLogout }) {
   return (
     <div className="page home-page">
       <aside className="sidebar">
-        <div className="profile-block">
-          <img src={devImage} alt="Profile placeholder" />
-          <div className="profile-text">
-            <strong>Welcome</strong>
-            <span>Manage your account</span>
-          </div>
+        <div className="sidebar-brand">
+          <div className="brand-icon">♻️</div>
+          <span className="brand-text">E-Waste</span>
         </div>
 
         <nav className="sidebar-nav">
@@ -153,14 +192,16 @@ function HomePage({ user, onLogout }) {
             className={`nav-item ${active === "home" ? "active" : ""}`}
             onClick={() => setActive("home")}
           >
-            Dashboard
+            <HiHome className="nav-icon" />
+            <span>Dashboard</span>
           </button>
           <button
             type="button"
             className={`nav-item ${active === "profile" ? "active" : ""}`}
             onClick={() => setActive("profile")}
           >
-            Profile
+            <HiUser className="nav-icon" />
+            <span>Profile</span>
           </button>
           <button
             type="button"
@@ -170,71 +211,213 @@ function HomePage({ user, onLogout }) {
               setSettingsView("menu");
             }}
           >
-            Settings
+            <HiCog className="nav-icon" />
+            <span>Settings</span>
           </button>
         </nav>
 
-        <button className="btn btn-logout" type="button" onClick={onLogout}>
-          Logout
-        </button>
+        <div className="sidebar-footer">
+          <div className="user-info">
+            <div className="user-avatar">
+              {(profileForm.name || user?.email || "U").charAt(0).toUpperCase()}
+            </div>
+            <div className="user-details">
+              <span className="user-name">{profileForm.name || "User"}</span>
+              <span className="user-email">{user?.email}</span>
+            </div>
+          </div>
+          <button className="btn btn-logout" type="button" onClick={onLogout}>
+            <HiLogout className="btn-icon" />
+            <span>Logout</span>
+          </button>
+        </div>
       </aside>
 
       <main className="home-content">
         {active === "home" && (
-          <section className="content-card home-card">
-            <img src={devImage} alt="E-waste development preview" />
-            <h1>Still in development</h1>
-          </section>
+          <>
+            <div className="page-header">
+              <div className="header-content">
+                <h1>Welcome back{profileForm.name ? `, ${profileForm.name}` : ""} 👋</h1>
+                <p>Here's what's happening with your e-waste management</p>
+              </div>
+            </div>
+
+            <div className="stats-grid">
+              <div className="stat-card">
+                <div className="stat-icon green">
+                  <HiRefresh />
+                </div>
+                <div className="stat-info">
+                  <span className="stat-value">0</span>
+                  <span className="stat-label">Items Recycled</span>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon blue">
+                  <HiTruck />
+                </div>
+                <div className="stat-info">
+                  <span className="stat-value">0</span>
+                  <span className="stat-label">Pickups Scheduled</span>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon orange">
+                  <HiClock />
+                </div>
+                <div className="stat-info">
+                  <span className="stat-value">0</span>
+                  <span className="stat-label">Pending Items</span>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon purple">
+                  <HiChartBar />
+                </div>
+                <div className="stat-info">
+                  <span className="stat-value">0</span>
+                  <span className="stat-label">Impact Score</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="content-grid">
+              <section className="content-card quick-actions">
+                <h2>Quick Actions</h2>
+                <div className="action-buttons">
+                  <button className="action-btn">
+                    <HiTruck />
+                    <span>Schedule Pickup</span>
+                  </button>
+                  <button className="action-btn">
+                    <HiRefresh />
+                    <span>Track Items</span>
+                  </button>
+                </div>
+              </section>
+
+              <section className="content-card featured-card">
+                <img src={devImage} alt="E-waste illustration" />
+                <div className="featured-overlay">
+                  <span className="featured-badge">Coming Soon</span>
+                  <h3>More Features</h3>
+                  <p>E-waste scheduling, tracking, and rewards system</p>
+                </div>
+              </section>
+            </div>
+          </>
         )}
 
         {active === "profile" && (
           <section className="content-card">
-            <h1>Profile</h1>
+            <div className="card-header">
+              <h1><HiUser className="header-icon" /> Profile</h1>
+              <p>Manage your personal information</p>
+            </div>
             <div className="profile-section">
-              <h2>Edit profile</h2>
+              <div className="profile-avatar-large">
+                {(profileForm.name || user?.email || "U").charAt(0).toUpperCase()}
+              </div>
               <form className="profile-form">
+                <div className="form-row">
+                  <label>
+                    <span className="label-text">Full Name</span>
+                    <input
+                      name="name"
+                      type="text"
+                      placeholder="Enter your name"
+                      value={profileForm.name}
+                      onChange={handleProfileChange}
+                      readOnly={!isEditing}
+                    />
+                  </label>
+                  <label>
+                    <span className="label-text">Email Address</span>
+                    <input
+                      name="email"
+                      type="email"
+                      value={profileForm.email}
+                      readOnly
+                      className="readonly-field"
+                    />
+                  </label>
+                </div>
+                <div className="form-row">
+                  <label>
+                    <span className="label-text">Mobile Number</span>
+                    <input
+                      name="mobileNumber"
+                      type="tel"
+                      placeholder="10-digit mobile number"
+                      value={profileForm.mobileNumber}
+                      onChange={handleProfileChange}
+                      readOnly={!isEditing}
+                    />
+                  </label>
+                </div>
+                <h3 className="section-title">Address Details</h3>
                 <label>
-                  Name
+                  <span className="label-text">Street Address</span>
                   <input
-                    name="name"
+                    name="street"
                     type="text"
-                    placeholder="Your name"
-                    value={profileForm.name}
+                    placeholder="House/Flat No, Street name"
+                    value={profileForm.street}
                     onChange={handleProfileChange}
                     readOnly={!isEditing}
                   />
                 </label>
                 <label>
-                  Email
+                  <span className="label-text">Landmark</span>
                   <input
-                    name="email"
-                    type="email"
-                    value={profileForm.email}
-                    readOnly
-                  />
-                </label>
-                <label>
-                  Mobile number
-                  <input
-                    name="mobileNumber"
-                    type="tel"
-                    placeholder="Enter mobile number"
-                    value={profileForm.mobileNumber}
+                    name="landmark"
+                    type="text"
+                    placeholder="Near landmark (optional)"
+                    value={profileForm.landmark}
                     onChange={handleProfileChange}
                     readOnly={!isEditing}
                   />
                 </label>
-                <label>
-                  Address
-                  <textarea
-                    name="address"
-                    rows="3"
-                    placeholder="Enter your address"
-                    value={profileForm.address}
-                    onChange={handleProfileChange}
-                    readOnly={!isEditing}
-                  ></textarea>
-                </label>
+                <div className="form-row">
+                  <label>
+                    <span className="label-text">City</span>
+                    <input
+                      name="city"
+                      type="text"
+                      placeholder="City"
+                      value={profileForm.city}
+                      onChange={handleProfileChange}
+                      readOnly={!isEditing}
+                    />
+                  </label>
+                  <label>
+                    <span className="label-text">State</span>
+                    <input
+                      name="state"
+                      type="text"
+                      placeholder="State"
+                      value={profileForm.state}
+                      onChange={handleProfileChange}
+                      readOnly={!isEditing}
+                    />
+                  </label>
+                </div>
+                <div className="form-row">
+                  <label>
+                    <span className="label-text">Pincode</span>
+                    <input
+                      name="pincode"
+                      type="text"
+                      placeholder="6-digit pincode"
+                      value={profileForm.pincode}
+                      onChange={handleProfileChange}
+                      readOnly={!isEditing}
+                      maxLength={6}
+                    />
+                  </label>
+                  <div></div>
+                </div>
                 <div className="profile-actions">
                   {!isEditing ? (
                     <button
@@ -242,7 +425,8 @@ function HomePage({ user, onLogout }) {
                       type="button"
                       onClick={handleEditClick}
                     >
-                      Edit
+                      <HiPencil className="btn-icon" />
+                      Edit Profile
                     </button>
                   ) : (
                     <>
@@ -251,13 +435,15 @@ function HomePage({ user, onLogout }) {
                         type="button"
                         onClick={handleProfileSave}
                       >
-                        Save changes
+                        <HiCheck className="btn-icon" />
+                        Save Changes
                       </button>
                       <button
                         className="btn btn-ghost"
                         type="button"
                         onClick={handleCancelEdit}
                       >
+                        <HiX className="btn-icon" />
                         Cancel
                       </button>
                     </>
@@ -275,7 +461,10 @@ function HomePage({ user, onLogout }) {
 
         {active === "settings" && (
           <section className="content-card">
-            <h1>Settings</h1>
+            <div className="card-header">
+              <h1><HiCog className="header-icon" /> Settings</h1>
+              <p>Manage your account preferences</p>
+            </div>
             {settingsView === "menu" && (
               <div className="profile-section">
                 <div className="settings-menu">
@@ -284,16 +473,26 @@ function HomePage({ user, onLogout }) {
                     type="button"
                     onClick={() => setSettingsView("theme")}
                   >
-                    <strong>Theme</strong>
-                    <span>Customize appearance</span>
+                    <div className="settings-icon theme">
+                      <HiColorSwatch />
+                    </div>
+                    <div className="settings-text">
+                      <strong>Theme</strong>
+                      <span>Customize appearance</span>
+                    </div>
                   </button>
                   <button
                     className="settings-item"
                     type="button"
                     onClick={() => setSettingsView("change-password")}
                   >
-                    <strong>Change password</strong>
-                    <span>Update your password</span>
+                    <div className="settings-icon security">
+                      <HiLockClosed />
+                    </div>
+                    <div className="settings-text">
+                      <strong>Change Password</strong>
+                      <span>Update your password</span>
+                    </div>
                   </button>
                 </div>
               </div>
@@ -301,73 +500,83 @@ function HomePage({ user, onLogout }) {
             {settingsView === "theme" && (
               <div className="profile-section">
                 <button
-                  className="btn btn-ghost"
+                  className="btn btn-ghost back-btn"
                   type="button"
                   onClick={() => setSettingsView("menu")}
-                  style={{ marginBottom: "20px" }}
                 >
-                  ← Back to Settings
+                  <HiArrowLeft className="btn-icon" />
+                  Back to Settings
                 </button>
-                <h2>Theme</h2>
-                <p>Theme customization coming soon.</p>
+                <h2><HiColorSwatch className="section-icon" /> Theme</h2>
+                <div className="coming-soon">
+                  <p>Theme customization coming soon.</p>
+                </div>
               </div>
             )}
             {settingsView === "change-password" && (
               <div className="profile-section">
                 <button
-                  className="btn btn-ghost"
+                  className="btn btn-ghost back-btn"
                   type="button"
                   onClick={() => setSettingsView("menu")}
-                  style={{ marginBottom: "20px" }}
                 >
-                  ← Back to Settings
+                  <HiArrowLeft className="btn-icon" />
+                  Back to Settings
                 </button>
-                <h2>Change password</h2>
-                <form className="profile-form">
+                <h2><HiLockClosed className="section-icon" /> Change Password</h2>
+                <form className="profile-form password-form">
                   <label>
-                    Current password
-                    <input
-                      name="currentPassword"
-                      type={showPasswords ? "text" : "password"}
-                      placeholder="Current password"
-                      value={passwordForm.currentPassword}
-                      onChange={handlePasswordChange}
-                    />
+                    <span className="label-text">Current Password</span>
+                    <div className="password-input">
+                      <input
+                        name="currentPassword"
+                        type={showPasswords ? "text" : "password"}
+                        placeholder="Enter current password"
+                        value={passwordForm.currentPassword}
+                        onChange={handlePasswordChange}
+                      />
+                    </div>
                   </label>
                   <label>
-                    New password
-                    <input
-                      name="newPassword"
-                      type={showPasswords ? "text" : "password"}
-                      placeholder="New password"
-                      value={passwordForm.newPassword}
-                      onChange={handlePasswordChange}
-                    />
+                    <span className="label-text">New Password</span>
+                    <div className="password-input">
+                      <input
+                        name="newPassword"
+                        type={showPasswords ? "text" : "password"}
+                        placeholder="Enter new password"
+                        value={passwordForm.newPassword}
+                        onChange={handlePasswordChange}
+                      />
+                    </div>
                   </label>
                   <label>
-                    Confirm password
-                    <input
-                      name="confirmPassword"
-                      type={showPasswords ? "text" : "password"}
-                      placeholder="Confirm password"
-                      value={passwordForm.confirmPassword}
-                      onChange={handlePasswordChange}
-                    />
+                    <span className="label-text">Confirm Password</span>
+                    <div className="password-input">
+                      <input
+                        name="confirmPassword"
+                        type={showPasswords ? "text" : "password"}
+                        placeholder="Confirm new password"
+                        value={passwordForm.confirmPassword}
+                        onChange={handlePasswordChange}
+                      />
+                    </div>
                   </label>
-                  <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px" }}>
+                  <label className="checkbox-label">
                     <input
                       type="checkbox"
                       checked={showPasswords}
                       onChange={(e) => setShowPasswords(e.target.checked)}
                     />
-                    Show passwords
+                    {showPasswords ? <HiEye className="checkbox-icon" /> : <HiEyeOff className="checkbox-icon" />}
+                    <span>Show passwords</span>
                   </label>
                   <button
                     className="btn btn-primary"
                     type="button"
                     onClick={handlePasswordSave}
                   >
-                    Update password
+                    <HiLockClosed className="btn-icon" />
+                    Update Password
                   </button>
                 </form>
                 {passwordStatus && (
