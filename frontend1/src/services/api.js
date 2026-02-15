@@ -4,17 +4,14 @@ const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080";
 const AUTH_BASE = process.env.REACT_APP_AUTH_BASE || `${API_BASE}/auth`;
 const PROFILE_BASE = `${API_BASE}/profile`;
 
-// Create axios instance with credentials enabled for cookies
 const api = axios.create({
   withCredentials: true,
 });
 
-// Handle 401 responses globally
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Clear local storage and trigger re-login
       localStorage.removeItem("ewaste_user");
       window.dispatchEvent(new Event("auth-expired"));
     }
@@ -37,3 +34,9 @@ export const updateProfile = (data) => api.put(`${PROFILE_BASE}`, data);
 
 export const changePassword = (data) =>
   api.post(`${AUTH_BASE}/change-password`, data);
+
+export const forgotPassword = (data) =>
+  api.post(`${AUTH_BASE}/forgot-password`, data);
+
+export const resetPassword = (data) =>
+  api.post(`${AUTH_BASE}/reset-password`, data);

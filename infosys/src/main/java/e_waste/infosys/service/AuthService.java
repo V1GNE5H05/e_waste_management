@@ -1,6 +1,5 @@
 package e_waste.infosys.service;
 
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
@@ -41,9 +40,8 @@ public class AuthService {
             return validationError;
         }
 
-        // prevent duplicate registration before sending OTP
-        Optional<User> existing = userRepository.findByEmail(normalizedEmail);
-        if (existing.isPresent()) {
+        User existing = userRepository.findByEmail(normalizedEmail).orElse(null);
+        if (existing != null) {
             return "Email already registered";
         }
 
@@ -63,7 +61,8 @@ public class AuthService {
             return "Invalid OTP";
         }
 
-        if (userRepository.findByEmail(normalizedEmail).isPresent()) {
+        User existing = userRepository.findByEmail(normalizedEmail).orElse(null);
+        if (existing != null) {
             return "Email already registered";
         }
 
@@ -79,10 +78,14 @@ public class AuthService {
             return validationError;
         }
 
-        return userRepository.findByEmail(normalizedEmail)
-                .filter(user -> passwordMatches(user, password))
-                .map(user -> "Login successful")
-                .orElse("Invalid credentials");
+        User user = userRepository.findByEmail(normalizedEmail).orElse(null);
+        if (user == null) {
+            return "Invalid credentials";
+        }
+        if (!passwordMatches(user, password)) {
+            return "Invalid credentials";
+        }
+        return "Login successful";
     }
 
     public String changePassword(String email, String currentPassword, String newPassword) {
@@ -97,12 +100,11 @@ public class AuthService {
             return emailError;
         }
 
-        Optional<User> existing = userRepository.findByEmail(normalizedEmail);
-        if (existing.isEmpty()) {
+        User user = userRepository.findByEmail(normalizedEmail).orElse(null);
+        if (user == null) {
             return "User not found";
         }
 
-        User user = existing.get();
         if (!passwordMatches(user, currentPassword)) {
             return "Current password is incorrect";
         }
@@ -150,6 +152,49 @@ public class AuthService {
             return true;
         }
         return false;
+    }
+
+    public String forgotPassword(String email) {
+        String normalizedEmail = normalizeEmail(email);
+        String emailError = validateEmailOnly(normalizedEmail);
+        if (emailError != null) {
+            return emailError;
+        }
+
+        User user = userRepository.findByEmail(normalizedEmail).orElse(null);
+        if (user == null) {
+            return "User not found";
+        }
+
+        String otp = otpService.generateOtp(normalizedEmail);
+        emailService.sendOtpMail(normalizedEmail, otp);
+        return "OTP sent to " + normalizedEmail;
+    }
+
+    public String resetPassword(String email, String otp, String newPassword) {
+        String normalizedEmail = normalizeEmail(email);
+        String emailError = validateEmailOnly(normalizedEmail);
+        if (emailError != null) {
+            return emailError;
+        }
+
+        String passwordError = validatePassword(newPassword);
+        if (passwordError != null) {
+            return passwordError;
+        }
+
+        if (!otpService.verifyOtp(normalizedEmail, otp)) {
+            return "Invalid OTP";
+        }
+
+        User user = userRepository.findByEmail(normalizedEmail).orElse(null);
+        if (user == null) {
+            return "User not found";
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        return "Password reset successful";
     }
 
     private String normalizeEmail(String email) {

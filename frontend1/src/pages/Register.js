@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { register, verifyOtp } from "../services/api";
 import { validateEmail, validatePassword } from "../utils/validators";
 import "../App.css";
@@ -10,9 +10,35 @@ function Register({ embedded = false, footer = null, onVerified }) {
   const [statusType, setStatusType] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [timer, setTimer] = useState(60);
+  const timerRef = useRef();
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
+  useEffect(() => {
+    if (step === "otp" && timer > 0) {
+      timerRef.current = setTimeout(() => setTimer((t) => t - 1), 1000);
+    }
+    return () => clearTimeout(timerRef.current);
+  }, [step, timer]);
+
+  const handleResendOtp = async () => {
+    setIsLoading(true);
+    setStatus("");
+    setStatusType("");
+    try {
+      await register({ email: form.email.trim(), password: form.password });
+      setStatus("OTP resent to your email");
+      setStatusType("success");
+      setTimer(60);
+      setForm((f) => ({ ...f, otp: "" }));
+    } catch (err) {
+      setStatus(err.response?.data?.error || "Unable to resend OTP. Please try again.");
+      setStatusType("error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -35,16 +61,13 @@ function Register({ embedded = false, footer = null, onVerified }) {
     setIsLoading(true);
     try {
       const payload = { email: form.email.trim(), password: form.password };
-      const res = await register(payload);
-      if (String(res.data).startsWith("OTP sent")) {
-        setStatus("OTP sent successfully");
-        setStatusType("success");
-        setStep("otp");
-      } else {
-        setStatus(res.data);
-      }
-    } catch {
-      setStatus("Unable to send OTP. Please try again.");
+      await register(payload);
+      setStatus("OTP sent successfully");
+      setStatusType("success");
+      setStep("otp");
+      setTimer(60);
+    } catch (err) {
+      setStatus(err.response?.data?.error || "Unable to send OTP. Please try again.");
       setStatusType("error");
     } finally {
       setIsLoading(false);
@@ -63,13 +86,11 @@ function Register({ embedded = false, footer = null, onVerified }) {
         password: form.password,
         otp: form.otp,
       });
-      setStatus(res.data);
+      setStatus(res.data.message);
       setStatusType("success");
-      if (String(res.data).startsWith("User verified and registered")) {
-        onVerified?.();
-      }
-    } catch {
-      setStatus("OTP verification failed. Please try again.");
+      onVerified?.();
+    } catch (err) {
+      setStatus(err.response?.data?.error || "OTP verification failed. Please try again.");
       setStatusType("error");
     } finally {
       setIsLoading(false);
@@ -137,12 +158,28 @@ function Register({ embedded = false, footer = null, onVerified }) {
               value={form.otp}
               onChange={handleChange}
               required
+              disabled={timer === 0}
             />
           </label>
+          {timer > 0 ? (
+            <div style={{ marginBottom: 8, color: '#00796b', fontWeight: 500 }}>
+              Time left: 0:{timer.toString().padStart(2, '0')}
+            </div>
+          ) : (
+            <button
+              className="btn btn-secondary"
+              type="button"
+              onClick={handleResendOtp}
+              disabled={isLoading}
+              style={{ marginBottom: 8 }}
+            >
+              {isLoading ? "Resending..." : "Resend OTP"}
+            </button>
+          )}
           <button
             className="btn btn-primary"
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || timer === 0}
           >
             {isLoading ? "Verifying..." : "Verify OTP"}
           </button>

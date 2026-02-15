@@ -1,6 +1,5 @@
 package e_waste.infosys.service;
 
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
@@ -29,8 +28,11 @@ public class ProfileService {
         if (user == null) {
             return null;
         }
-        Optional<Profile> existing = profileRepository.findByUserEmail(email);
-        return existing.orElseGet(() -> profileRepository.save(new Profile(user)));
+        Profile profile = profileRepository.findByUserEmail(email).orElse(null);
+        if (profile == null) {
+            profile = profileRepository.save(new Profile(user));
+        }
+        return profile;
     }
 
     public Profile upsertProfile(String email, String name, String mobileNumber, 
@@ -43,7 +45,10 @@ public class ProfileService {
         validateMobile(normalizedMobile);
         String normalizedPincode = normalizePincode(pincode);
         validatePincode(normalizedPincode);
-        Profile profile = profileRepository.findByUserEmail(email).orElseGet(() -> new Profile(user));
+        Profile profile = profileRepository.findByUserEmail(email).orElse(null);
+        if (profile == null) {
+            profile = new Profile(user);
+        }
         profile.setName(name);
         profile.setMobileNumber(normalizedMobile);
         profile.setStreet(street);
@@ -57,7 +62,7 @@ public class ProfileService {
 
     private void validateMobile(String mobileNumber) {
         if (mobileNumber == null || mobileNumber.isBlank()) {
-            return; // optional field
+            return;
         }
         if (!MOBILE_PATTERN.matcher(mobileNumber).matches()) {
             throw new IllegalArgumentException("Mobile number must be exactly 10 digits.");
@@ -66,7 +71,7 @@ public class ProfileService {
 
     private void validatePincode(String pincode) {
         if (pincode == null || pincode.isBlank()) {
-            return; // optional field
+            return;
         }
         if (!PINCODE_PATTERN.matcher(pincode).matches()) {
             throw new IllegalArgumentException("Pincode must be exactly 6 digits.");
